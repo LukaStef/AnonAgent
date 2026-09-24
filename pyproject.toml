@@ -1,0 +1,35 @@
+[project]
+name = "anonagent"
+version = "0.1.0"
+description = "A local privacy layer between sensitive data and cloud LLMs"
+readme = "README.md"
+authors = [
+    { name = "Luka Stefanovic", email = "lukastef42@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "en-core-web-lg",
+    "langchain-openai>=0.2",
+    "presidio-analyzer>=2.2.355",
+    "python-dotenv>=1.0",
+    "streamlit>=1.40",
+]
+
+[project.scripts]
+anonagent = "anonagent.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.15,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: loads the spaCy model; skip with -m 'not slow'"]
+
+[tool.uv.sources]
+en-core-web-lg = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_lg-3.8.0/en_core_web_lg-3.8.0-py3-none-any.whl" }
