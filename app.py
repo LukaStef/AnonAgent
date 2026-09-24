@@ -93,8 +93,7 @@ CSS = """
   .chip.none {border-color: #1b2430; background: #0b1016; color: #55657a;}
 
   .note {font-size: .72rem; color: #6f8096; margin-top: .45rem; line-height: 1.5;}
-  .note.warn {color: #c9a227;}
-  .note.bad {color: #e06c6c;}
+  .note .clear {color: #c9a227;}
 
   .result {
     border: 1px solid #1b2430; border-radius: 8px; background: #0b1016;
@@ -282,7 +281,7 @@ def detected_chips(result, settings) -> str:
     if left:
         note = (
             "<div class='note'>detected and masked &middot; "
-            "<span style='color:#c9a227'>left in the clear on purpose</span></div>"
+            "<span class='clear'>left in the clear on purpose</span></div>"
         )
     return f"{note}<div class='chips'>{chips}</div>"
 

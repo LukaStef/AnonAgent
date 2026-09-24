@@ -183,14 +183,13 @@ def _plausible(entity_type: str, value: str) -> bool:
 class LabelledFieldRecognizer(EntityRecognizer):
     """Reads "Label: value" lines and trusts the label.
 
-    Statistical name recognition is uneven: it finds "Slobodan Zivkovic" and
-    misses "Letar Pukovac" in the same document, because one looks more like
-    its training data than the other. A line that says "Full name:" does not
-    depend on how familiar the name is, and records, forms and reports are
-    written in exactly that shape.
+    Statistical name recognition is uneven: it will find one name and miss
+    the next one in the same document, depending on how much each resembles
+    what the model was trained on. A line reading "Full name:" does not care
+    how familiar the name is, and records, forms and reports are written in
+    exactly that shape.
     """
 
-    #: Longest labels first, so "account number" wins over "account".
     _PATTERN = re.compile(
         r"^[ \t]*(?P<label>[A-Za-z][A-Za-z ./-]{1,28}?)[ \t]*:[ \t]*(?P<value>\S.*?)[ \t]*$",
         re.MULTILINE,

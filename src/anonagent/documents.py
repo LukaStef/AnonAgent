@@ -21,7 +21,6 @@ DEFAULT_CHUNK_CHARS = 8_000
 #: A blank line, kept as its own piece so chunks retile the original exactly.
 _PARAGRAPH_BREAK = re.compile(r"(\n[ \t]*\n)")
 
-#: The end of a sentence, plus the whitespace that follows it.
 _SENTENCE_END = re.compile(r"(?<=[.!?])(\s+)")
 
 

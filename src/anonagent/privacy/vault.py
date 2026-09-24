@@ -53,11 +53,11 @@ class PseudonymVault:
     ``match`` decides when two mentions count as the same value:
 
     ``"normalized"``
-        Case and repeated whitespace are ignored, so ``NIKOLA  Stefanovic``
-        and ``Nikola Stefanovic`` share one placeholder. The model sees one
-        person instead of two, at the cost of restoration being *canonical*
-        rather than byte-exact: every mention comes back spelled the way the
-        first one was.
+        Case and repeated whitespace are ignored, so two spellings of one
+        value that differ only in capitalisation or spacing share a single
+        placeholder. The model sees one person instead of two, at the cost
+        of restoration being *canonical* rather than byte-exact: every
+        mention comes back spelled the way the first one was.
     ``"exact"``
         Only identical spellings share a placeholder, so restoration returns
         the text unchanged, character for character. Use it when the input
