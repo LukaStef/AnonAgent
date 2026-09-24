@@ -13,8 +13,8 @@ from anonagent.privacy.vault import PseudonymVault
 @pytest.fixture
 def vault():
     v = PseudonymVault()
-    v.pseudonymize("Nikola Stefanovic", "PERSON")
-    v.pseudonymize("nikola@example.com", "EMAIL_ADDRESS")
+    v.pseudonymize("James Bond", "PERSON")
+    v.pseudonymize("james@example.com", "EMAIL_ADDRESS")
     return v
 
 
@@ -37,24 +37,24 @@ def vault():
     ],
 )
 def test_a_mangled_placeholder_still_resolves(vault, mangled):
-    assert "Nikola Stefanovic" in vault.restore(mangled)
+    assert "James Bond" in vault.restore(mangled)
 
 
 def test_a_multi_word_entity_type_resolves(vault):
-    assert vault.restore("Email_Address_1") == "nikola@example.com"
-    assert vault.restore("<EMAIL_ADDRESS_001>") == "nikola@example.com"
+    assert vault.restore("Email_Address_1") == "james@example.com"
+    assert vault.restore("<EMAIL_ADDRESS_001>") == "james@example.com"
 
 
 def test_punctuation_the_model_added_is_kept(vault):
     """Angle brackets are ours to remove. Everything else is the model's prose."""
-    assert vault.restore("[PERSON_001]") == "[Nikola Stefanovic]"
-    assert vault.restore("(PERSON_001)") == "(Nikola Stefanovic)"
-    assert vault.restore("**PERSON_001**") == "**Nikola Stefanovic**"
+    assert vault.restore("[PERSON_001]") == "[James Bond]"
+    assert vault.restore("(PERSON_001)") == "(James Bond)"
+    assert vault.restore("**PERSON_001**") == "**James Bond**"
 
 
 def test_possessives_and_surrounding_words_survive(vault):
     assert vault.restore("the user PERSON_001's account") == (
-        "the user Nikola Stefanovic's account"
+        "the user James Bond's account"
     )
 
 
@@ -83,8 +83,8 @@ def test_an_empty_vault_changes_nothing():
 def test_several_mangled_placeholders_in_one_sentence(vault):
     reply = "Person 1 can be reached at email_address_001, per <PERSON_001>."
     assert vault.restore(reply) == (
-        "Nikola Stefanovic can be reached at nikola@example.com, "
-        "per Nikola Stefanovic."
+        "James Bond can be reached at james@example.com, "
+        "per James Bond."
     )
 
 

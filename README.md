@@ -19,9 +19,19 @@ Requires [uv](https://docs.astral.sh/uv/) and Python 3.12 — not 3.13, where
 the spaCy build Presidio needs does not install.
 
 ```bash
-uv sync                 # also fetches the 560 MB spaCy model
-cp .env.example .env    # add OPENAI_API_KEY to reach a model
+uv sync    # also fetches the 560 MB spaCy model
 ```
+
+To reach a cloud model, put a `.env` beside `pyproject.toml`. It is gitignored
+and must stay that way:
+
+```bash
+OPENAI_API_KEY=sk-...           # or GROQ_API_KEY, for --provider groq
+LLM_MODEL=gpt-4o-mini           # optional, this is the default
+ANONAGENT_SECRET=any-long-string  # optional: keeps fingerprints stable
+```
+
+Without it, everything except `--ask` and `--chat` still works.
 
 ## Use
 

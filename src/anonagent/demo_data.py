@@ -8,10 +8,10 @@ from __future__ import annotations
 
 SAMPLES: dict[str, str] = {
     "banking": (
-        "Check whether Nikola Stefanovic, account holder at our Belgrade branch, "
+        "Check whether James Bond, account holder at our Belgrade branch, "
         "has sufficient funds for a transfer of 50,000 RSD. His IBAN is "
         "RS35260005601001611379 and his registered email is "
-        "nikola.stefanovic@example.com. The request came from employee EMP-004217."
+        "james.bond@example.com. The request came from employee EMP-004217."
     ),
     "medical": (
         "Patient Maria Whitfield, SSN 432-56-7890, was admitted on the 14th with "

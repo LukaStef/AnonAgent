@@ -9,7 +9,7 @@ import pytest
 
 from anonagent.privacy.vault import PseudonymVault
 
-SPELLINGS = ["nikola@example.com", "Nikola@Example.COM", "NIKOLA@EXAMPLE.COM"]
+SPELLINGS = ["james@example.com", "James@Example.COM", "JAMES@EXAMPLE.COM"]
 
 
 def test_normalized_mode_collapses_spellings_into_one_placeholder():
@@ -23,7 +23,7 @@ def test_normalized_mode_restores_every_spelling_as_the_first_one():
     vault = PseudonymVault(match="normalized")
     for spelling in SPELLINGS:
         vault.pseudonymize(spelling, "EMAIL_ADDRESS")
-    assert vault.restore("<EMAIL_ADDRESS_001>") == "nikola@example.com"
+    assert vault.restore("<EMAIL_ADDRESS_001>") == "james@example.com"
 
 
 def test_exact_mode_keeps_spellings_apart():
@@ -40,7 +40,7 @@ def test_exact_mode_restores_each_spelling_untouched():
 
 def test_truly_different_values_never_collapse():
     vault = PseudonymVault(match="normalized")
-    mine = vault.pseudonymize("nikola@example.com", "EMAIL_ADDRESS")
+    mine = vault.pseudonymize("james@example.com", "EMAIL_ADDRESS")
     theirs = vault.pseudonymize("team@example.com", "EMAIL_ADDRESS")
     assert mine.placeholder != theirs.placeholder
 
@@ -62,8 +62,8 @@ def test_variants_records_each_spelling_once():
 
 def test_canonicalized_reports_only_values_that_changed_spelling():
     vault = PseudonymVault(match="normalized")
-    vault.pseudonymize("nikola@example.com", "EMAIL_ADDRESS")
-    vault.pseudonymize("NIKOLA@EXAMPLE.COM", "EMAIL_ADDRESS")
+    vault.pseudonymize("james@example.com", "EMAIL_ADDRESS")
+    vault.pseudonymize("JAMES@EXAMPLE.COM", "EMAIL_ADDRESS")
     vault.pseudonymize("team@example.com", "EMAIL_ADDRESS")
 
     assert [p.placeholder for p in vault.canonicalized()] == ["<EMAIL_ADDRESS_001>"]

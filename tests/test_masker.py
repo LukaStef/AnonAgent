@@ -12,9 +12,9 @@ from helpers import StubDetector, span
 
 
 def test_round_trip_restores_the_original_exactly():
-    text = "Nikola Stefanovic emailed nikola@example.com about the audit."
+    text = "James Bond emailed james@example.com about the audit."
     detector = StubDetector(
-        [span(text, "Nikola Stefanovic", "PERSON"), span(text, "nikola@example.com", "EMAIL_ADDRESS")]
+        [span(text, "James Bond", "PERSON"), span(text, "james@example.com", "EMAIL_ADDRESS")]
     )
     masker = Masker(detector=detector)
 
@@ -23,22 +23,22 @@ def test_round_trip_restores_the_original_exactly():
 
 
 def test_masked_text_contains_no_original_value():
-    text = "Nikola Stefanovic emailed nikola@example.com about the audit."
+    text = "James Bond emailed james@example.com about the audit."
     detector = StubDetector(
-        [span(text, "Nikola Stefanovic", "PERSON"), span(text, "nikola@example.com", "EMAIL_ADDRESS")]
+        [span(text, "James Bond", "PERSON"), span(text, "james@example.com", "EMAIL_ADDRESS")]
     )
     result = Masker(detector=detector).mask(text)
 
-    assert "Nikola Stefanovic" not in result.masked_text
-    assert "nikola@example.com" not in result.masked_text
+    assert "James Bond" not in result.masked_text
+    assert "james@example.com" not in result.masked_text
     assert "<PERSON_001>" in result.masked_text
     assert "about the audit." in result.masked_text
 
 
 def test_repeated_value_collapses_to_one_placeholder():
-    text = "Nikola signed it, then Nikola countersigned it."
-    first = span(text, "Nikola", "PERSON")
-    second = DetectedEntity("PERSON", text.rindex("Nikola"), text.rindex("Nikola") + 6, 0.9, "Nikola")
+    text = "James signed it, then James countersigned it."
+    first = span(text, "James", "PERSON")
+    second = DetectedEntity("PERSON", text.rindex("James"), text.rindex("James") + 6, 0.9, "James")
     masker = Masker(detector=StubDetector([first, second]))
 
     result = masker.mask(text)
@@ -48,13 +48,13 @@ def test_repeated_value_collapses_to_one_placeholder():
 
 def test_masking_survives_the_model_rewriting_the_sentence():
     """The model answers in its own words; only the placeholders come back."""
-    text = "Nikola Stefanovic requested the transfer."
-    masker = Masker(detector=StubDetector([span(text, "Nikola Stefanovic", "PERSON")]))
+    text = "James Bond requested the transfer."
+    masker = Masker(detector=StubDetector([span(text, "James Bond", "PERSON")]))
     masker.mask(text)
 
     model_reply = "Yes, PERSON_001 is authorized. Notify **<PERSON_001>** by Friday."
     assert masker.unmask(model_reply) == (
-        "Yes, Nikola Stefanovic is authorized. Notify **Nikola Stefanovic** by Friday."
+        "Yes, James Bond is authorized. Notify **James Bond** by Friday."
     )
 
 
@@ -72,14 +72,14 @@ def test_empty_input_is_handled(text):
 
 
 def test_entity_counts_describe_without_disclosing():
-    text = "Nikola Stefanovic emailed nikola@example.com about the audit."
+    text = "James Bond emailed james@example.com about the audit."
     detector = StubDetector(
-        [span(text, "Nikola Stefanovic", "PERSON"), span(text, "nikola@example.com", "EMAIL_ADDRESS")]
+        [span(text, "James Bond", "PERSON"), span(text, "james@example.com", "EMAIL_ADDRESS")]
     )
     counts = Masker(detector=detector).mask(text).entity_counts
 
     assert counts == {"PERSON": 1, "EMAIL_ADDRESS": 1}
-    assert "Nikola" not in str(counts)
+    assert "James" not in str(counts)
 
 
 def test_an_empty_vault_passed_in_is_actually_used():
@@ -97,13 +97,13 @@ def test_an_empty_vault_passed_in_is_actually_used():
 
 
 def test_exact_mode_reaches_the_vault_through_the_masker():
-    text = "Mail nikola@example.com and Nikola@Example.COM"
+    text = "Mail james@example.com and James@Example.COM"
     from anonagent.privacy.vault import PseudonymVault
 
     detector = StubDetector(
         [
-            span(text, "nikola@example.com", "EMAIL_ADDRESS"),
-            span(text, "Nikola@Example.COM", "EMAIL_ADDRESS"),
+            span(text, "james@example.com", "EMAIL_ADDRESS"),
+            span(text, "James@Example.COM", "EMAIL_ADDRESS"),
         ]
     )
     masker = Masker(detector=detector, vault=PseudonymVault(match="exact"))

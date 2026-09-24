@@ -33,7 +33,7 @@ def rendered(app, only_cards: bool = False) -> str:
     return "\n".join(blocks)
 
 
-PRIVATE = ["Slobodan Zivkovic", "0412987654321", "DE89370400440532013000"]
+PRIVATE = ["James Bond", "0412987654321", "DE89370400440532013000"]
 
 
 def test_the_page_renders_and_submits_without_error(app):
@@ -54,7 +54,7 @@ def test_the_projected_column_does_show_the_placeholders(app):
 
 
 def test_the_local_column_still_shows_the_input(app):
-    assert "Slobodan Zivkovic" in app.text_area[0].value
+    assert "James Bond" in app.text_area[0].value
 
 
 def test_without_a_key_the_local_half_still_runs(app):

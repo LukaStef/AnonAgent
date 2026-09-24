@@ -11,7 +11,7 @@ from helpers import StubDetector, span
 from anonagent.agent.pipeline import ModelUnavailable, PrivacyPipeline
 from anonagent.privacy.masker import Masker
 
-QUESTION = "Does Nikola Stefanovic have clearance?"
+QUESTION = "Does James Bond have clearance?"
 
 
 class FailingLLM:
@@ -27,7 +27,7 @@ class FailingLLM:
 
 
 def pipeline_raising(error):
-    detector = StubDetector([span(QUESTION, "Nikola Stefanovic", "PERSON")])
+    detector = StubDetector([span(QUESTION, "James Bond", "PERSON")])
     return PrivacyPipeline(FailingLLM(error), Masker(detector=detector))
 
 
@@ -85,12 +85,12 @@ def test_the_failure_is_recorded_in_the_log():
 
 def test_a_failure_message_never_carries_the_private_value():
     """An error string is the easiest place for a secret to escape."""
-    pipeline = pipeline_raising(named_error("WeirdError", "failed on Nikola Stefanovic"))
+    pipeline = pipeline_raising(named_error("WeirdError", "failed on James Bond"))
 
     with pytest.raises(ModelUnavailable) as caught:
         pipeline.ask(QUESTION)
 
-    assert "Nikola Stefanovic" not in str(caught.value)
+    assert "James Bond" not in str(caught.value)
 
 
 def test_a_multiline_provider_message_is_trimmed_to_one_line():

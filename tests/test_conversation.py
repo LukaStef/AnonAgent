@@ -10,7 +10,7 @@ from helpers import FakeLLM, ValueDetector
 from anonagent.agent.pipeline import PrivacyPipeline
 from anonagent.privacy.masker import Masker
 
-NAME = "Nikola Stefanovic"
+NAME = "James Bond"
 FIRST = f"Does {NAME} have clearance?"
 SECOND = "And when did he get it?"
 

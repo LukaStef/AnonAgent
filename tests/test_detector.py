@@ -21,7 +21,7 @@ def types_in(detector, text):
 
 
 def test_detects_a_person_and_an_email(detector):
-    found = types_in(detector, "Nikola Stefanovic can be reached at nikola@example.com.")
+    found = types_in(detector, "James Bond can be reached at james@example.com.")
     assert "PERSON" in found
     assert "EMAIL_ADDRESS" in found
 
@@ -66,7 +66,7 @@ def test_clean_text_yields_nothing(detector):
 
 def test_detected_spans_never_overlap(detector):
     text = (
-        "Nikola Stefanovic, SSN 078-05-1120, emailed nikola@example.com "
+        "James Bond, SSN 078-05-1120, emailed james@example.com "
         "from 10.0.14.201 on behalf of EMP-004217."
     )
     entities = detector.detect(text)
@@ -75,6 +75,6 @@ def test_detected_spans_never_overlap(detector):
 
 
 def test_detected_text_matches_its_own_offsets(detector):
-    text = "Nikola Stefanovic can be reached at nikola@example.com."
+    text = "James Bond can be reached at james@example.com."
     for entity in detector.detect(text):
         assert text[entity.start : entity.end] == entity.text

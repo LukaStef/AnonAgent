@@ -30,7 +30,7 @@ st.set_page_config(
 
 SAMPLE = """Please analyse the following transaction for potential fraud risk:
 
-Full name: Slobodan Zivkovic
+Full name: James Bond
 ID number: 0412987654321
 Transaction: EUR 4,850 wire transfer to IBAN DE89370400440532013000
 on 2024-11-14 at 14:32 CET.
@@ -83,16 +83,17 @@ CSS = """
   }
   .card .body.idle {color: #4a5a6d;}
 
-  .chips {display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .2rem;}
+  .chips {display: flex; flex-wrap: wrap; gap: .4rem;
+          margin: .45rem 0 1.1rem;}
   .chip {
-    font-size: .68rem; padding: .16rem .45rem; border-radius: 4px;
+    font-size: .68rem; padding: .22rem .5rem; border-radius: 4px;
     border: 1px solid #1d5f56; background: #0f1f1c; color: #2dd4bf;
     letter-spacing: .04em;
   }
   .chip.clear {border-color: #3d3520; background: #1a1710; color: #c9a227;}
   .chip.none {border-color: #1b2430; background: #0b1016; color: #55657a;}
 
-  .note {font-size: .72rem; color: #6f8096; margin-top: .45rem; line-height: 1.5;}
+  .note {font-size: .72rem; color: #6f8096; margin-top: .9rem; line-height: 1.5;}
   .note .clear {color: #c9a227;}
 
   .result {

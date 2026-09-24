@@ -1,7 +1,7 @@
 """The recognizers that do not depend on a statistical model.
 
-Named-entity recognition is uneven by nature: it found "Slobodan Zivkovic"
-and missed "Letar Pukovac" in the same document. These rules do not care how
+Named-entity recognition is uneven by nature: it found "James Bond"
+and missed "Vorin Meklic" in the same document. These rules do not care how
 familiar a value looks.
 """
 
@@ -12,10 +12,43 @@ from anonagent.privacy.recognizers import _valid_jmbg
 
 pytestmark = pytest.mark.slow
 
+#: A name the language model does not know. The labelled-field tests below
+#: only mean anything while that stays true, which is what
+#: test_the_unfamiliar_name_really_is_unfamiliar checks.
+UNFAMILIAR = "Vorin Meklic"
+
 
 @pytest.fixture(scope="module")
 def detector():
     return PiiDetector()
+
+
+@pytest.fixture(scope="module")
+def plain_presidio():
+    """Presidio with none of our rules registered: spaCy and its defaults."""
+    from presidio_analyzer import AnalyzerEngine
+
+    return AnalyzerEngine()
+
+
+def test_the_unfamiliar_name_really_is_unfamiliar(plain_presidio):
+    """Guards the premise the labelled-field tests rest on.
+
+    Those tests prove that a label is believed even when the model does not
+    recognize the name. Swap in a name the model happens to know and they all
+    stay green while proving nothing, so the premise is checked rather than
+    written down and hoped for.
+
+    Whether a name qualifies is not guessable. Most ordinary ones are
+    recognized, and a name the model misses in a bare sentence may still be
+    recognized once "Full name:" precedes it -- which is the case this test
+    covers. To replace the name, put a candidate here and run this test: it
+    fails on anything the model already knows.
+    """
+    found = plain_presidio.analyze(
+        text=f"Full name: {UNFAMILIAR}", entities=["PERSON"], language="en"
+    )
+    assert found == [], f"{UNFAMILIAR!r} is known to the model; pick another name"
 
 
 def found(detector, text):
@@ -23,18 +56,22 @@ def found(detector, text):
 
 
 def test_a_labelled_name_is_caught_however_unfamiliar(detector):
-    """The regression that started this: NER knew one name and not the other."""
-    text = "Full name: Slobodan Zivkovic\nFull name: Letar Pukovac"
+    """The regression that started this: NER knew one name and not the other.
+
+    The label rule does the work here: the model does not know this name, as
+    test_the_unfamiliar_name_really_is_unfamiliar checks.
+    """
+    text = f"Full name: James Bond\nFull name: {UNFAMILIAR}"
     names = {e.text for e in detector.detect(text) if e.entity_type == "PERSON"}
-    assert names == {"Slobodan Zivkovic", "Letar Pukovac"}
+    assert names == {"James Bond", UNFAMILIAR}
 
 
 @pytest.mark.parametrize(
     "label", ["Full name", "Name", "Patient", "Client", "Account holder", "Employee"]
 )
 def test_the_labels_that_introduce_a_person(detector, label):
-    entities = detector.detect(f"{label}: Letar Pukovac")
-    assert ("PERSON", "Letar Pukovac") in {(e.entity_type, e.text) for e in entities}
+    entities = detector.detect(f"{label}: {UNFAMILIAR}")
+    assert ("PERSON", UNFAMILIAR) in {(e.entity_type, e.text) for e in entities}
 
 
 def test_a_labelled_id_number_is_caught(detector):
@@ -63,9 +100,9 @@ def test_ordinary_prose_with_a_colon_is_not_a_field(detector):
 
 def test_labelled_fields_survive_a_realistic_record(detector):
     text = (
-        "Full name: Letar Pukovac\n"
+        "Full name: Vorin Meklic\n"
         "ID number: 4428374023740\n"
-        "Email: letar@example.com\n"
+        "Email: vorin@example.com\n"
         "Phone: +1 415 555 0182\n"
     )
     types = {e.entity_type for e in detector.detect(text)}
@@ -163,8 +200,8 @@ def test_a_label_is_not_believed_over_an_implausible_value(detector, field, reas
     "field",
     [
         "ID number: 534532532534",
-        "Full name: Letar Pukovac",
-        "Email: letar@example.com",
+        "Full name: Vorin Meklic",
+        "Email: vorin@example.com",
         "Phone: +1 415 555 0182",
     ],
 )
@@ -178,10 +215,10 @@ def test_the_label_word_itself_is_never_masked(detector):
     A field label is structure, not data. Masking it produces output that
     reads like nonsense while the value beside it survives.
     """
-    entities = detector.detect("Email: letar@example.com")
-    assert [e.text for e in entities] == ["letar@example.com"]
+    entities = detector.detect("Email: vorin@example.com")
+    assert [e.text for e in entities] == ["vorin@example.com"]
 
 
 def test_a_person_label_does_not_swallow_the_word_before_the_colon(detector):
-    entities = detector.detect("Patient: Letar Pukovac")
-    assert [e.text for e in entities] == ["Letar Pukovac"]
+    entities = detector.detect("Patient: Vorin Meklic")
+    assert [e.text for e in entities] == ["Vorin Meklic"]
