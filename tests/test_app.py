@@ -20,10 +20,24 @@ APP = Path(__file__).resolve().parent.parent / "app.py"
 
 @pytest.fixture(scope="module")
 def app():
-    at = streamlit_testing.AppTest.from_file(str(APP), default_timeout=180)
-    at.run()
-    at.button[0].click().run()
-    return at
+    """Drive the page with no API key in the environment.
+
+    Without this the suite behaves differently on a machine that happens to
+    have a key: the page would reach a cloud model, so the tests would be
+    slow, non-deterministic, and quietly spending someone's credit.
+
+    The variables are emptied rather than deleted, because the page calls
+    load_dotenv() as it starts and that would put a deleted one straight
+    back. An empty value stays empty: load_dotenv leaves alone what is
+    already set.
+    """
+    with pytest.MonkeyPatch.context() as environment:
+        for variable in ("OPENAI_API_KEY", "GROQ_API_KEY", "OLLAMA_BASE_URL"):
+            environment.setenv(variable, "")
+        at = streamlit_testing.AppTest.from_file(str(APP), default_timeout=180)
+        at.run()
+        at.button[0].click().run()
+        return at
 
 
 def rendered(app, only_cards: bool = False) -> str:

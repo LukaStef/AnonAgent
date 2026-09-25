@@ -7,11 +7,15 @@ three cases an audience recognizes instantly: a bank, a hospital, a codebase.
 from __future__ import annotations
 
 SAMPLES: dict[str, str] = {
+    # The balance has to be here. Ask whether someone can afford a transfer
+    # without saying what they have, and the model rightly answers that it
+    # cannot tell -- which looks like the masking failed when it did not.
     "banking": (
-        "Check whether James Bond, account holder at our Belgrade branch, "
-        "has sufficient funds for a transfer of 50,000 RSD. His IBAN is "
+        "James Bond, account holder at our Belgrade branch, has a balance of "
+        "62,400 RSD and requested a transfer of 50,000 RSD. His IBAN is "
         "RS35260005601001611379 and his registered email is "
-        "james.bond@example.com. The request came from employee EMP-004217."
+        "james.bond@example.com. The request came from employee EMP-004217. "
+        "Does he have sufficient funds, and is anything about this unusual?"
     ),
     "medical": (
         "Patient Maria Whitfield, SSN 432-56-7890, was admitted on the 14th with "
