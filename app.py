@@ -104,6 +104,18 @@ CSS = """
   .result.idle {color: #4a5a6d; display: flex; align-items: center;
                 justify-content: center; text-align: center;}
 
+  .gate {
+    border: 1px solid #3d3520; background: #1a1710; border-radius: 6px;
+    padding: .55rem .7rem; margin: .2rem 0 .5rem;
+    font-size: .74rem; color: #c9a227; line-height: 1.5;
+  }
+
+  .disclaimer {
+    border-top: 1px solid #1b2430; margin-top: 1.6rem; padding-top: .8rem;
+    font-size: .72rem; color: #6f8096; line-height: 1.7;
+  }
+  .disclaimer b {color: #c9a227; font-weight: 600;}
+
   .stTextArea textarea {
     background: #0b1016 !important; border: 1px solid #1b2430 !important;
     font-size: .82rem !important; line-height: 1.55 !important; color: #d7e2ee !important;
@@ -128,6 +140,13 @@ def main() -> None:
         column_head("Input / raw data", "Stays on this machine")
         text = st.text_area("query", value=SAMPLE, height=300, label_visibility="collapsed")
         chips_slot = st.empty()
+        confirm_first = st.checkbox(
+            "Let me read the payload before it goes",
+            value=False,
+            key="confirm_first",
+            help="Masks locally and stops. Nothing reaches the network until "
+            "you have seen exactly what would be sent.",
+        )
         send_column, reset_column = st.columns([3, 1])
         with send_column:
             submit = st.button("Mask and send")
@@ -137,6 +156,7 @@ def main() -> None:
             # edited instead, yesterday's people linger, hence a way out.
             reset = st.button("New", help="Empty the vault and start fresh")
         mapping_slot = st.empty()
+        gate_slot = st.container()
 
     if reset:
         st.session_state.pop("masker", None)
@@ -159,15 +179,95 @@ def main() -> None:
     )
     chips_slot.markdown(detected_chips(None, settings), unsafe_allow_html=True)
 
-    if submit and text.strip():
-        run(text, settings, chips_slot, step_slots, result_slot, mapping_slot)
-
-
-def run(text, settings, chips_slot, step_slots, result_slot, mapping_slot) -> None:
     masker = session_masker(settings)
+    pending = st.session_state.get("pending")
+    done = st.session_state.get("done")
 
-    # Step 1 and 2 happen together: a span is pseudonymized as it is found.
-    result = masker.mask(text)
+    if submit and text.strip():
+        result = masker.mask(text)
+        render_local(result, settings, masker, chips_slot, step_slots, mapping_slot)
+        st.session_state["done"] = done = None
+        if confirm_first:
+            st.session_state["pending"] = pending = result
+        else:
+            st.session_state["pending"] = pending = None
+            answer = send_to_cloud(result, settings, masker, step_slots, result_slot)
+            st.session_state["done"] = done = (result, answer)
+    elif pending is not None:
+        # A rerun while a payload waits: keep the panels as the user left them.
+        render_local(pending, settings, masker, chips_slot, step_slots, mapping_slot)
+    elif done is not None:
+        # Streamlit reruns on every click, so a finished exchange has to be
+        # redrawn from memory or the screen empties itself.
+        redraw(done, settings, masker, chips_slot, step_slots, result_slot, mapping_slot)
+
+    if pending is not None:
+        hold(gate_slot, pending, settings, masker, step_slots, result_slot)
+
+    disclaimer()
+
+
+def hold(container, result, settings, masker, step_slots, result_slot) -> None:
+    """Stop before the network and let the user read what would be sent."""
+    step_slots[3].markdown(
+        step_card("4", "Cloud model response", "waiting for you to confirm", done=False),
+        unsafe_allow_html=True,
+    )
+    with container:
+        st.markdown(
+            "<div class='gate'>Nothing has been sent. Step 3 is exactly what "
+            "would go.</div>",
+            unsafe_allow_html=True,
+        )
+        go_column, drop_column = st.columns(2)
+        if go_column.button("Send it", type="primary"):
+            st.session_state["pending"] = None
+            answer = send_to_cloud(result, settings, masker, step_slots, result_slot)
+            st.session_state["done"] = (result, answer)
+        if drop_column.button("Discard"):
+            st.session_state["pending"] = None
+            st.session_state["done"] = None
+            st.rerun()
+
+
+def disclaimer() -> None:
+    """Say plainly that detection misses things.
+
+    Whether a name is found depends on the sentence around it: the same name
+    can be caught in one line and missed in the next. A tool that quietly
+    implies otherwise is worse than one that says so.
+    """
+    st.markdown(
+        "<div class='disclaimer'>"
+        "<b>This will miss things.</b> Detection is statistical, so whether a "
+        "value is found depends on the words around it &mdash; the same name "
+        "can be caught in one sentence and missed in the next. Names the "
+        "model has not seen before are the usual gap.<br>"
+        "Read the cloud payload in the middle column before you trust it. "
+        "Lowering the detection threshold or turning on review in the sidebar "
+        "catches more, at the cost of masking things that did not need it."
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+
+def redraw(done, settings, masker, chips_slot, step_slots, result_slot, mapping_slot) -> None:
+    """Put a finished exchange back on screen after an unrelated rerun."""
+    result, answer = done
+    render_local(result, settings, masker, chips_slot, step_slots, mapping_slot)
+    if answer is None:
+        return
+    step_slots[3].markdown(
+        step_card("4", "Cloud model response", answer.masked_answer, done=True),
+        unsafe_allow_html=True,
+    )
+    result_slot.markdown(
+        f"<div class='result'>{escape(answer.answer)}</div>", unsafe_allow_html=True
+    )
+
+
+def render_local(result, settings, masker, chips_slot, step_slots, mapping_slot) -> None:
+    """Fill the panels that describe work already done on this machine."""
     chips_slot.markdown(detected_chips(result, settings), unsafe_allow_html=True)
     with mapping_slot.expander("local vault -- never leaves this machine"):
         st.code(vault_mapping(masker, result), language=None)
@@ -185,6 +285,14 @@ def run(text, settings, chips_slot, step_slots, result_slot, mapping_slot) -> No
         unsafe_allow_html=True,
     )
 
+
+def send_to_cloud(result, settings, masker, step_slots, result_slot):
+    """Everything from here on crosses the network.
+
+    Returns the answer, or None if nothing came back. The caller keeps it:
+    Streamlit reruns the whole script on the next click, and an answer that
+    lives only in this call would vanish with it.
+    """
     leaked = masker.leaks(result.masked_text)
     if leaked:
         step_slots[3].markdown(
@@ -192,7 +300,7 @@ def run(text, settings, chips_slot, step_slots, result_slot, mapping_slot) -> No
                       done=False),
             unsafe_allow_html=True,
         )
-        return
+        return None
 
     if not os.getenv(settings["key_variable"]):
         step_slots[3].markdown(
@@ -210,17 +318,31 @@ def run(text, settings, chips_slot, step_slots, result_slot, mapping_slot) -> No
             "the local half of the pipeline still ran</div>",
             unsafe_allow_html=True,
         )
-        return
+        return None
+
+    # Written before the call, so the wait has something to show for itself.
+    step_slots[3].markdown(
+        step_card("4", "Cloud model response", "contacting the model...", done=False),
+        unsafe_allow_html=True,
+    )
+    result_slot.markdown(
+        "<div class='result idle'>waiting for the model&hellip;</div>",
+        unsafe_allow_html=True,
+    )
 
     pipeline = PrivacyPipeline(build_llm(settings["provider"], settings["model"]), masker)
     try:
-        answer = pipeline.ask_masked(result)
+        with st.spinner("Waiting for the cloud model"):
+            answer = pipeline.ask_masked(result)
     except (ModelUnavailable, LeakDetected) as error:
         step_slots[3].markdown(
             step_card("4", "Cloud model response", f"Failed: {error}", done=False),
             unsafe_allow_html=True,
         )
-        return
+        result_slot.markdown(
+            "<div class='result idle'>nothing came back</div>", unsafe_allow_html=True
+        )
+        return None
 
     step_slots[3].markdown(
         step_card("4", "Cloud model response", answer.masked_answer, done=True),
@@ -229,6 +351,7 @@ def run(text, settings, chips_slot, step_slots, result_slot, mapping_slot) -> No
     result_slot.markdown(
         f"<div class='result'>{escape(answer.answer)}</div>", unsafe_allow_html=True
     )
+    return answer
 
 
 def session_masker(settings) -> Masker:

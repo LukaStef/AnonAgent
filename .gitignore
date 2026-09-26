@@ -15,3 +15,6 @@ wheels/
 
 # Pytest
 .pytest_cache/
+
+# Masked copies the tool writes beside their source
+*.masked.*
