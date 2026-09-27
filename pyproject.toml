@@ -6,7 +6,8 @@ readme = "README.md"
 authors = [
     { name = "Luka Stefanovic", email = "lukastef42@gmail.com" }
 ]
-requires-python = ">=3.12"
+# Capped below 3.13: the spaCy build Presidio needs does not install there.
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "en-core-web-lg",
     "langchain-openai>=0.2",

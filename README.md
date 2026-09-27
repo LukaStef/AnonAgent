@@ -2,6 +2,8 @@
 
 A local privacy layer between sensitive data and cloud LLMs.
 
+Running at **[anonagent.lukastefanovic.com](https://anonagent.lukastefanovic.com)**.
+
 Sensitive text is analysed on this machine, every private value is swapped for
 a placeholder, and only the placeholder version is sent to the model. The
 answer comes back, the real values are restored locally, and the user reads a
@@ -15,23 +17,19 @@ Check whether James Bond has funds for 50,000 RSD.     <- restored locally
 
 ## Setup
 
-Requires [uv](https://docs.astral.sh/uv/) and Python 3.12 — not 3.13, where
-the spaCy build Presidio needs does not install.
+Requires [uv](https://docs.astral.sh/uv/) and Python 3.12.
 
 ```bash
 uv sync    # also fetches the 560 MB spaCy model
 ```
 
-To reach a cloud model, put a `.env` beside `pyproject.toml`. It is gitignored
-and must stay that way:
+To reach a cloud model, put a `.env` beside `pyproject.toml`:
 
 ```bash
-OPENAI_API_KEY=sk-...           # or GROQ_API_KEY, for --provider groq
-LLM_MODEL=gpt-4o-mini           # optional, this is the default
+OPENAI_API_KEY=sk-...             # or GROQ_API_KEY, for --provider groq
+LLM_MODEL=gpt-4o-mini             # optional, this is the default
 ANONAGENT_SECRET=any-long-string  # optional: keeps fingerprints stable
 ```
-
-Without it, everything except `--ask` and `--chat` still works.
 
 ## Use
 
